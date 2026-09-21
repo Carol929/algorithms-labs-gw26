@@ -76,6 +76,8 @@ Binary heaps come in two fundamental forms:
 
 **In a Max-Heap, every parent element is greater than or equal to both of its children, guaranteeing the absolute maximum element always resides at index 0.**
 
+*Note: A node is a leaf node if there is no left child (2i + 1 ≥ n,  or,   i ≥ n // 2), where **n** is the active heap size*
+
 ### In-place Heapsort mechanics
 
 Heapsort sorts an array entirely in place with $O(1)$ auxiliary space:
@@ -454,6 +456,14 @@ ensuring $O(\log n)$ worst-case search.
 
 Rotations are local pointer-rewiring transformations that alter the height of
 subtrees without altering the in-order traversal of keys.
+
+Before implementing the rotation functions, work through the illustrated cases:
+
+**Visual guide:** [AVL Rotation Images and Cases](AVL_ROTATION_GUIDE.md)
+
+The guide presents the cases in increasing order of complexity: **LL**, **RR**,
+**LR**, and **RL**. It shows the tree after each available rotation and explains
+how the missing final RL drawing mirrors the simpler RR rotation.
 
 **Rotations alter the pointer structure and heights of nodes to restore balance while strictly preserving the in-order traversal order of all keys.**
 
