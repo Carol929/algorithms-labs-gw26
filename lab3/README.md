@@ -142,8 +142,8 @@ and the array state after each step. The first row is worked.
 | Step | Current `i` | Value at `i` | Children (left, right) | Largest index | Action taken | Array afterward |
 |---|---|---|---|---|---|---|
 | 1 | 0 | 4 | `left=1` (10), `right=2` (8) | 1 | Swap `arr[0]` with `arr[1]` | `[10, 4, 8, 5, 1, 2, 7]` |
-| 2 | TODO | TODO | TODO | TODO | TODO | TODO |
-| 3 | TODO | TODO | TODO | TODO | TODO | TODO |
+| 2 | 1 | 4 | `left=3` (5), `right=4` (1) | 3 | Swap `arr[1]` with `arr[3]` | `[10, 5, 8, 4, 1, 2, 7]`  |
+| 3 | 3 | 4 | no children | 3 | Stop (leaf) | `[10, 5, 8, 4, 1, 2, 7]`  |
 
 ### 1.2 Trace: Heapsort extraction passes
 
