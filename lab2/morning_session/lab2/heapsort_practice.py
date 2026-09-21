@@ -29,5 +29,5 @@ def heap_sort(arr):
 
 
 if __name__ == "__main__":
-  from lab_checks import check_heapsort
+  from lab2.morning_session.lab2.lab_checks import check_heapsort
   raise SystemExit(check_heapsort(min_heapify_down, build_min_heap, heap_sort))

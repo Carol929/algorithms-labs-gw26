@@ -8,7 +8,7 @@ nav_order: 3
 
 In this lab, you will trace Bubble Sort and Insertion Sort, implement Lomuto
 partitioning, practice the merge step of Merge Sort, and use an array-based
-max-heap to implement Heapsort.
+min-heap to implement Heapsort.
 
 Bubble Sort and Insertion Sort are **trace exercises only**. Their code is
 provided below; you do not need to implement either algorithm. This lab uses
@@ -21,7 +21,7 @@ Lomuto partitioning only.
 | `README.md` | Complete the trace tables and written responses in your lab notes or a copy of this file |
 | `quicksort_practice.py` | Implement `lomuto_partition`; Quicksort is provided |
 | `mergesort_practice.py` | Implement `merge`; recursive Merge Sort is provided |
-| `heapsort_practice.py` | Implement `max_heapify_down` and complete `heap_sort`; heap construction is provided |
+| `heapsort_practice.py` | Implement `min_heapify_down` and complete `heap_sort`; heap construction is provided |
 | `lab_checks.py` | Provided checks; do not edit |
 
 - [ ] Part 1: Bubble Sort and Insertion Sort traces and short answers.

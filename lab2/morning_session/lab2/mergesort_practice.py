@@ -22,5 +22,5 @@ def merge_sort(arr):
 
 
 if __name__ == "__main__":
-  from lab_checks import check_mergesort
+  from lab2.morning_session.lab2.lab_checks import check_mergesort
   raise SystemExit(check_mergesort(merge, merge_sort))
