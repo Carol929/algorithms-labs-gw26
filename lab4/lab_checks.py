@@ -462,9 +462,9 @@ def check_rotations(
     bal_depth = search_depth(bal_tree.root, target)
 
     print(
-      "\n  [Demo] Search depth for key " + str(target) + " across " + str(n) + " keys:"
-      + "\n         Degenerate (sorted input): " + str(deg_depth) + " comparisons (O(n))"
-      + "\n         Balanced (median input):   " + str(bal_depth) + " comparisons (O(log n))"
+      "\n  [Demo] Search comparisons for key " + str(target) + " across " + str(n) + " keys:"
+      + "\n         Degenerate (sorted input): " + str(deg_depth + 1) + " comparisons (O(n))"
+      + "\n         Balanced (median input):   " + str(bal_depth + 1) + " comparisons (O(log n))"
     )
 
   cases = [

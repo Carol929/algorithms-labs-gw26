@@ -66,6 +66,7 @@ slot, attach a new `Node(key, parent=...)`, and link the parent's `left` or
 
 Deletion is divided into three structural cases depending on how many children
 the target node $z$ possesses:
+
 1. **0 children (leaf):** Disconnect $z$ from its parent.
 2. **1 child:** Bypass $z$ by connecting $z$'s parent directly to $z$'s sole child.
 3. **2 children:** Locate $z$'s in-order successor $y$ (the minimum key in $z$'s
@@ -84,7 +85,7 @@ the target node $z$ possesses:
 | `node.parent` | Points to parent node or `None` (for `root`) |
 | **Case 1 (0 children)** | `transplant(tree, z, None)` |
 | **Case 2 (1 child)** | `transplant(tree, z, z.left)` if `z.right is None`, else `transplant(tree, z, z.right)` |
-| **Case 3 (2 children)** | Find $y = \text{tree\_minimum}(z.\text{right})$. If $y \ne z.\text{right}$, splice $y$ out using `transplant(tree, y, y.right)` and rewire $y.\text{right} = z.\text{right}$. Finally `transplant(tree, z, y)` and rewire $y.\text{left} = z.\text{left}$. |
+| **Case 3 (2 children)** | Find `y = tree_minimum(z.right)`. If `y != z.right`, splice `y` out using `transplant(tree, y, y.right)` and rewire `y.right = z.right`. Finally `transplant(tree, z, y)` and rewire `y.left = z.left`. |
 
 ### Pseudocode
 
@@ -163,6 +164,7 @@ traversal of the tree after insertion. The first two rows are worked.
 
 Starting from the tree built in 1.1 with keys `[10, 20, 30, 40, 50, 60, 70]`,
 perform the following three deletions sequentially:
+
 1. Delete key `10`
 2. Delete key `20`
 3. Delete key `40`
@@ -231,12 +233,13 @@ visited, in order, and the total number of key comparisons.
 | Balanced BST | TODO | TODO |
 
 The test suite in `lab_checks.py` demonstrates the difference empirically by
-searching 1,000 keys: 999 comparisons on a degenerate tree versus only 8 on a
-balanced tree.
+searching for key `999` among 1,000 keys: 1,000 node comparisons on a
+degenerate tree versus only 9 on a balanced tree (including the matching node).
 
 ### 2.2 Height balance factors and violation signatures
 
 An **AVL tree** maintains the **balance invariant**:
+
 $$\text{BF}(v) = \text{height}(v.\text{left}) - \text{height}(v.\text{right}) \in \{-1, 0, 1\} \quad \text{for all nodes } v$$
 
 When a node insertion causes $|\text{BF}(z)| \ge 2$ at some ancestor $z$, an
@@ -297,22 +300,27 @@ RL drawing uses the same left rotation shown in the RR case.
 **Rotations alter the pointer structure and heights of nodes to restore balance while strictly preserving the in-order traversal order of all keys.**
 
 ### Single Right Rotation (`rotate_right(tree, y)`)
+
 In a right rotation around node $y$, $y$'s left child $x$ becomes the new root
 of the subtree:
+
 1. $x$'s right subtree becomes $y$'s left subtree.
 2. $y$ becomes $x$'s right child.
 3. Parent pointers are updated for $x$, $y$, and the transferred subtree.
 4. The heights of $y$ and $x$ are recalculated (in that order: $y$ first, then $x$).
 
 ### Single Left Rotation (`rotate_left(tree, x)`)
+
 The symmetric mirror of right rotation: $x$'s right child $y$ becomes the new
 root of the subtree:
+
 1. $y$'s left subtree becomes $x$'s right subtree.
 2. $x$ becomes $y$'s left child.
 3. Parent pointers are updated for $y$, $x$, and the transferred subtree.
 4. The heights of $x$ and $y$ are recalculated (in that order: $x$ first, then $y$).
 
 ### Double Rotations
+
 - **`rotate_left_right(tree, z)`**: Performs `rotate_left(tree, z.left)` followed
   by `rotate_right(tree, z)`.
 - **`rotate_right_left(tree, z)`**: Performs `rotate_right(tree, z.right)` followed
@@ -384,6 +392,7 @@ before and after the rotation.
 ### 3.2 Implementation
 
 Open `rotation_practice.py` and implement the five functions:
+
 - **TODO 3.2A:** `balance_factor(node)`
 - **TODO 3.2B:** `rotate_left(tree, x)`
 - **TODO 3.2C:** `rotate_right(tree, y)`
@@ -421,10 +430,12 @@ its original height, so no ancestor above it needs another rotation.
 
 Because the new key was just inserted below $z$, comparing the key to $z$'s
 child is enough to pick the signature:
+
 - $\text{BF}(z) > 1$ and `key < z.left.key` $\rightarrow$ LL; otherwise LR.
 - $\text{BF}(z) < -1$ and `key > z.right.key` $\rightarrow$ RR; otherwise RL.
 
 There are two natural ways to visit the ancestors:
+
 1. **Iterative:** Insert with a loop exactly like `BST-INSERT`, then follow
    `parent` pointers from the new node's parent up to the root.
 2. **Recursive:** Recurse down to the empty slot. As each call returns, it
