@@ -104,6 +104,33 @@ def verify_bst_invariants(tree):
   check_node(tree.root, float("-inf"), float("inf"))
 
 
+def verify_avl_invariants(tree):
+  """Verify BST ordering, parent pointers, stored heights, and AVL balance."""
+  verify_bst_invariants(tree)
+
+  def check_node(node):
+    if node is None:
+      return -1
+
+    left_height = check_node(node.left)
+    right_height = check_node(node.right)
+    expected_height = 1 + max(left_height, right_height)
+
+    require(
+      node.height == expected_height,
+      "Incorrect stored height at key " + str(node.key)
+      + ": expected " + str(expected_height)
+      + ", found " + str(node.height)
+    )
+    require(
+      abs(left_height - right_height) <= 1,
+      "AVL balance invariant violated at key " + str(node.key)
+    )
+    return expected_height
+
+  check_node(tree.root)
+
+
 # Test suites
 def check_heap(max_heapify_down, build_max_heap, heap_sort):
   def heapify_case(values, i, heap_size):
@@ -250,6 +277,280 @@ def check_bst(bst_insert, bst_delete):
     ("Delete node with 2 children (immediate successor)", test_delete_two_children_immediate_successor),
     ("Delete root node with 2 children (deep successor)", test_delete_two_children_deep_successor),
     ("Delete all nodes until empty", test_delete_all_sequential),
+  ]
+
+  return run_checks(cases)
+
+
+def check_rotations(
+  balance_factor,
+  rotate_left,
+  rotate_right,
+  rotate_left_right,
+  rotate_right_left,
+  avl_insert_iterative,
+  avl_insert_recursive
+):
+  def test_balance_factor_values():
+    node = Node(20)
+    require(balance_factor(node) == 0, "Leaf balance factor must be 0")
+    require(balance_factor(None) == 0, "None node balance factor must be 0")
+
+    node.left = Node(10, parent=node)
+    node.left.height = 0
+    node.height = 1
+    require(balance_factor(node) == 1, "Left-heavy node balance factor must be 1")
+
+    node.right = Node(30, parent=node)
+    node.right.height = 0
+    require(balance_factor(node) == 0, "Balanced 2-child node balance factor must be 0")
+
+    node.right.height = 1
+    require(balance_factor(node) == -1, "Right-heavy node balance factor must be -1")
+
+  def test_rotate_right_root():
+    # LL tree: 30 -> 20 -> 10
+    tree = BinarySearchTree()
+    n30 = Node(30)
+    n20 = Node(20, parent=n30)
+    n10 = Node(10, parent=n20)
+    n30.left = n20
+    n20.left = n10
+    n30.height = 2
+    n20.height = 1
+    n10.height = 0
+    tree.root = n30
+
+    rotate_right(tree, n30)
+
+    require(tree.root is n20, "Root must become 20 after right rotation")
+    require(n20.parent is None, "New root parent must be None")
+    require(n20.left is n10 and n10.parent is n20, "Left child 10 preserved")
+    require(n20.right is n30 and n30.parent is n20, "30 becomes right child of 20")
+    require(n30.left is None, "30 left child must be None")
+    require(n30.height == 0, "Node 30 height updated to 0")
+    require(n20.height == 1, "Node 20 height updated to 1")
+    require(inorder_walk(tree.root) == [10, 20, 30], "In-order traversal preserved")
+
+  def test_rotate_left_root():
+    # RR tree: 10 -> 20 -> 30
+    tree = BinarySearchTree()
+    n10 = Node(10)
+    n20 = Node(20, parent=n10)
+    n30 = Node(30, parent=n20)
+    n10.right = n20
+    n20.right = n30
+    n10.height = 2
+    n20.height = 1
+    n30.height = 0
+    tree.root = n10
+
+    rotate_left(tree, n10)
+
+    require(tree.root is n20, "Root must become 20 after left rotation")
+    require(n20.parent is None, "New root parent must be None")
+    require(n20.left is n10 and n10.parent is n20, "10 becomes left child of 20")
+    require(n20.right is n30 and n30.parent is n20, "Right child 30 preserved")
+    require(n10.right is None, "10 right child must be None")
+    require(n10.height == 0, "Node 10 height updated to 0")
+    require(n20.height == 1, "Node 20 height updated to 1")
+    require(inorder_walk(tree.root) == [10, 20, 30], "In-order traversal preserved")
+
+  def test_rotate_interior_subtree():
+    # Rotate an interior node with a parent
+    # Tree: 50 -> left is 30 -> 30.left is 20, 20.left is 10
+    tree = BinarySearchTree()
+    n50 = Node(50)
+    n30 = Node(30, parent=n50)
+    n20 = Node(20, parent=n30)
+    n10 = Node(10, parent=n20)
+    n50.left = n30
+    n30.left = n20
+    n20.left = n10
+    n50.height = 3
+    n30.height = 2
+    n20.height = 1
+    n10.height = 0
+    tree.root = n50
+
+    rotate_right(tree, n30)
+
+    require(tree.root is n50, "Tree root must remain 50")
+    require(n50.left is n20, "50 left child must update to 20")
+    require(n20.parent is n50, "20 parent must update to 50")
+    require(n20.right is n30, "20 right child must be 30")
+    require(n30.parent is n20, "30 parent must be 20")
+    require(inorder_walk(tree.root) == [10, 20, 30, 50], "In-order traversal preserved")
+
+  def test_double_rotation_left_right():
+    # LR tree: 30 -> 10 -> 20
+    tree = BinarySearchTree()
+    n30 = Node(30)
+    n10 = Node(10, parent=n30)
+    n20 = Node(20, parent=n10)
+    n30.left = n10
+    n10.right = n20
+    n30.height = 2
+    n10.height = 1
+    n20.height = 0
+    tree.root = n30
+
+    rotate_left_right(tree, n30)
+
+    require(tree.root is n20, "Root must become 20 after rotate_left_right")
+    require(n20.left is n10 and n10.parent is n20, "10 is left child of 20")
+    require(n20.right is n30 and n30.parent is n20, "30 is right child of 20")
+    require(inorder_walk(tree.root) == [10, 20, 30], "In-order traversal preserved")
+
+  def test_double_rotation_right_left():
+    # RL tree: 10 -> 30 -> 20
+    tree = BinarySearchTree()
+    n10 = Node(10)
+    n30 = Node(30, parent=n10)
+    n20 = Node(20, parent=n30)
+    n10.right = n30
+    n30.left = n20
+    n10.height = 2
+    n30.height = 1
+    n20.height = 0
+    tree.root = n10
+
+    rotate_right_left(tree, n10)
+
+    require(tree.root is n20, "Root must become 20 after rotate_right_left")
+    require(n20.left is n10 and n10.parent is n20, "10 is left child of 20")
+    require(n20.right is n30 and n30.parent is n20, "30 is right child of 20")
+    require(inorder_walk(tree.root) == [10, 20, 30], "In-order traversal preserved")
+
+  def insertion_case(insert, keys, expected_root):
+    tree = BinarySearchTree()
+    inserted_keys = []
+
+    for key in keys:
+      inserted = insert(tree, key)
+      inserted_keys.append(key)
+
+      require(inserted is not None, "Insertion must return the new Node")
+      require(inserted.key == key, "Returned Node must contain the inserted key")
+
+      current = tree.root
+      while current is not None and current.key != key:
+        current = current.left if key < current.key else current.right
+      require(current is inserted, "Returned Node must be linked into the tree")
+
+      verify_avl_invariants(tree)
+      require(
+        inorder_walk(tree.root) == sorted(inserted_keys),
+        "In-order traversal must contain every inserted key in sorted order"
+      )
+
+    require(
+      tree.root.key == expected_root,
+      "Expected root " + str(expected_root) + ", found " + str(tree.root.key)
+    )
+
+  def test_insert_rotation_cases(insert):
+    insertion_case(insert, [42], 42)
+    insertion_case(insert, [30, 20, 10], 20)  # LL
+    insertion_case(insert, [10, 20, 30], 20)  # RR
+    insertion_case(insert, [30, 10, 20], 20)  # LR
+    insertion_case(insert, [10, 30, 20], 20)  # RL
+
+  def test_insert_larger_tree(insert):
+    insertion_case(
+      insert,
+      [50, 30, 70, 20, 40, 60, 80, 10, 25, 35, 45, 55, 65, 75, 85,
+       5, 15, 27, 90, 100],
+      50
+    )
+
+  def demo_degeneration_profiling():
+    # Demonstration comparing search depth on degenerate vs balanced BST
+    n = 1000
+    sorted_keys = list(range(n))
+    random_keys = sorted_keys.copy()
+    rng = random.Random(3212)
+    rng.shuffle(random_keys)
+
+    # We build trees manually for the demo
+    deg_tree = BinarySearchTree()
+    curr = None
+    for k in sorted_keys:
+      new_node = Node(k)
+      if deg_tree.root is None:
+        deg_tree.root = new_node
+      else:
+        curr.right = new_node
+        new_node.parent = curr
+      curr = new_node
+
+    # Helper to measure depth
+    def search_depth(root, target):
+      depth = 0
+      curr = root
+      while curr is not None and curr.key != target:
+        depth += 1
+        if target < curr.key:
+          curr = curr.left
+        else:
+          curr = curr.right
+      return depth
+
+    target = n - 1
+    deg_depth = search_depth(deg_tree.root, target)
+
+    # Build balanced tree by recursive median insertion
+    bal_tree = BinarySearchTree()
+
+    def insert_bst(tree, key):
+      node = Node(key)
+      if tree.root is None:
+        tree.root = node
+        return
+      c = tree.root
+      p = None
+      while c:
+        p = c
+        c = c.left if key < c.key else c.right
+      node.parent = p
+      if key < p.key:
+        p.left = node
+      else:
+        p.right = node
+
+    def build_balanced(arr):
+      if not arr:
+        return
+      mid = len(arr) // 2
+      insert_bst(bal_tree, arr[mid])
+      build_balanced(arr[:mid])
+      build_balanced(arr[mid + 1:])
+
+    build_balanced(sorted_keys)
+    bal_depth = search_depth(bal_tree.root, target)
+
+    print(
+      "\n  [Demo] Search depth for key " + str(target) + " across " + str(n) + " keys:"
+      + "\n         Degenerate (sorted input): " + str(deg_depth) + " comparisons (O(n))"
+      + "\n         Balanced (median input):   " + str(bal_depth) + " comparisons (O(log n))"
+    )
+
+  cases = [
+    ("Balance factor calculation", test_balance_factor_values),
+    ("Rotate right on root (LL signature)", test_rotate_right_root),
+    ("Rotate left on root (RR signature)", test_rotate_left_root),
+    ("Rotate right on interior subtree", test_rotate_interior_subtree),
+    ("Double rotation rotate_left_right (LR signature)", test_double_rotation_left_right),
+    ("Double rotation rotate_right_left (RL signature)", test_double_rotation_right_left),
+    ("Iterative AVL insertion handles LL, RR, LR, and RL",
+     lambda: test_insert_rotation_cases(avl_insert_iterative)),
+    ("Iterative AVL insertion maintains a larger tree",
+     lambda: test_insert_larger_tree(avl_insert_iterative)),
+    ("Recursive AVL insertion handles LL, RR, LR, and RL",
+     lambda: test_insert_rotation_cases(avl_insert_recursive)),
+    ("Recursive AVL insertion maintains a larger tree",
+     lambda: test_insert_larger_tree(avl_insert_recursive)),
+    ("Imbalance profiling demonstration", demo_degeneration_profiling),
   ]
 
   return run_checks(cases)
