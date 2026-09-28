@@ -1,4 +1,4 @@
-"""Parts 4-5: implement AVL rotations plus iterative and recursive insertion.
+"""Parts 3-4: implement AVL balance factor, rotations, and iterative and recursive AVL insertion.
 
 Node structure, tree container, and height maintenance helpers are provided.
 """
@@ -25,12 +25,7 @@ class BinarySearchTree:
     self.root = None
 
   def print_tree(self):
-    """Print the full tree with child labels, heights, balance factors, and parents.
-
-    This provided debugging helper reports the values currently stored in the
-    nodes. It also marks repeated node references so an accidental pointer cycle
-    does not cause infinite recursion.
-    """
+    """Print the full tree with child labels, heights, balance factors, and parents."""
     if self.root is None:
       print("(empty tree)")
       return
@@ -94,7 +89,7 @@ def balance_factor(node):
 
   Return 0 if node is None.
   """
-  # TODO 4.2A: Return get_height(node.left) - get_height(node.right).
+  # TODO 3.2A: Return get_height(node.left) - get_height(node.right).
   raise NotImplementedError("Complete balance_factor")
 
 
@@ -104,7 +99,7 @@ def rotate_left(tree, x):
   Pivots on x's right child y. Updates child pointers, parent pointers,
   tree.root (if x was root), and recalculates heights for x and y.
   """
-  # TODO 4.2B: Rewire pointers so y = x.right rises into x's position; update heights of x then y.
+  # TODO 3.2B: Rewire pointers so y = x.right rises into x's position; update heights of x then y.
   raise NotImplementedError("Complete rotate_left")
 
 
@@ -114,7 +109,7 @@ def rotate_right(tree, y):
   Pivots on y's left child x. Updates child pointers, parent pointers,
   tree.root (if y was root), and recalculates heights for y and x.
   """
-  # TODO 4.2C: Rewire pointers so x = y.left rises into y's position; update heights of y then x.
+  # TODO 3.2C: Rewire pointers so x = y.left rises into y's position; update heights of y then x.
   raise NotImplementedError("Complete rotate_right")
 
 
@@ -123,7 +118,7 @@ def rotate_left_right(tree, z):
 
   Rotates left on z's left child, then rotates right on z.
   """
-  # TODO 4.2D: Call rotate_left on z.left, then rotate_right on z.
+  # TODO 3.2D: Call rotate_left on z.left, then rotate_right on z.
   raise NotImplementedError("Complete rotate_left_right")
 
 
@@ -132,29 +127,19 @@ def rotate_right_left(tree, z):
 
   Rotates right on z's right child, then rotates left on z.
   """
-  # TODO 4.2E: Call rotate_right on z.right, then rotate_left on z.
+  # TODO 3.2E: Call rotate_right on z.right, then rotate_left on z.
   raise NotImplementedError("Complete rotate_right_left")
 
 
 def avl_insert_iterative(tree, key):
-  """Insert a distinct key iteratively, rebalance the AVL tree, and return its Node.
-
-  First perform an iterative BST insertion. Then walk upward toward the root,
-  updating heights and applying the appropriate LL, RR, LR, or RL rotation.
-  Preserve every child and parent pointer, including tree.root.parent == None.
-  """
-  # TODO 5.1: Insert with a loop, then retrace the parent path and rebalance.
+  """Insert a key iteratively, restore AVL balance, and return its Node."""
+  # TODO 4.1A: BST-insert with a loop, then walk parent pointers upward updating heights and rotating at the first unbalanced node.
   raise NotImplementedError("Complete avl_insert_iterative")
 
 
 def avl_insert_recursive(tree, key):
-  """Insert a distinct key recursively, rebalance the AVL tree, and return its Node.
-
-  Use a recursive helper that returns the root of the updated subtree. On the
-  way back up the call stack, update heights and repair any AVL violation.
-  Preserve every child and parent pointer, including tree.root.parent == None.
-  """
-  # TODO 5.2: Recursively insert, then update and rebalance while unwinding.
+  """Insert a key recursively, restore AVL balance, and return its Node."""
+  # TODO 4.1B: Recurse down to an empty slot; on the way back up, update heights, rotate if unbalanced, and return the subtree root.
   raise NotImplementedError("Complete avl_insert_recursive")
 
 
