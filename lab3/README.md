@@ -4,14 +4,12 @@ title: Lab 3
 nav_order: 4
 ---
 
-# CSCI 3212 Lab 3: Heaps, Binary Search Trees, and AVL Rotations
+# CSCI 3212 Lab 3: Heaps and Binary Search Trees
 
 In this lab, you will explore both array-based binary trees and pointer-based
 binary search trees. You will implement Max-Heap sift-down and the ascending
 Heapsort algorithm structure, trace and implement pointer-based BST insertion
-and deletion, profile structural imbalance, calculate AVL balance factors, and
-implement atomic single and double rotations. You will then combine those
-operations into both iterative and recursive AVL insertion algorithms.
+and deletion, and profile structural imbalance.
 
 This lab uses two primary tree representations:
 1. **Array-based binary heaps:** Complete binary trees mapped onto 0-based
@@ -23,8 +21,7 @@ This lab uses two primary tree representations:
    references (`left`, `right`, `parent`). For two-child BST deletions, the
    **in-order successor** (minimum of the right subtree) replaces the deleted
    node. Subtree height is defined such that an empty child has height `-1` and a
-   leaf has height `0`. Balance factors are computed as
-   $\text{BF}(v) = \text{height}(v.\text{left}) - \text{height}(v.\text{right})$.
+   leaf has height `0`.
 
 ## Files and deliverables
 
@@ -33,20 +30,17 @@ This lab uses two primary tree representations:
 | `README.md` | Complete the trace tables and written responses in your lab notes or a copy of this file |
 | `heap_practice.py` | Implement `max_heapify_down` and complete `heap_sort`; bottom-up heap construction is provided |
 | `bst_practice.py` | Implement `bst_insert` and `bst_delete`; search, minimum, and transplant are provided |
-| `rotation_practice.py` | Implement the balance/rotation primitives plus iterative and recursive AVL insertion |
-| `lab_checks.py` | Provided checks and profiling demonstration; do not edit |
+| `lab_checks.py` | Provided checks; do not edit |
 
 - [ ] Part 1: Max-Heap sift-down trace, Heapsort extraction trace, implementation, and short answers.
 - [ ] Part 2: BST insertion and deletion traces, implementation, and short answers.
-- [ ] Part 3: Diagnose the four AVL violation signatures.
-- [ ] Part 4: Implement the AVL rotation primitives.
-- [ ] Part 5: Implement iterative and recursive AVL insertion.
-- [ ] Run all three practice files and resolve all failed checks.
+- [ ] Part 3: Compare search paths in degenerate and balanced BSTs.
+- [ ] Run both practice files and resolve all failed checks.
 
 Keep the function names and parameters unchanged. Do not use `sorted`,
 `list.sort`, or `heapq` to implement the required functions. The provided checks
 inspect array mutations, pointer identities, in-order traversals, parent
-references, and node heights directly.
+references directly.
 
 ## Counting and height conventions
 
@@ -54,8 +48,6 @@ references, and node heights directly.
 - Height of `None` is `-1`.
 - Height of a leaf node (both children `None`) is `0`.
 - Height of an internal node is $1 + \max(\text{height}(\text{left}), \text{height}(\text{right}))$.
-- Balance factor is $\text{height}(v.\text{left}) - \text{height}(v.\text{right})$.
-- An AVL node is balanced if $\text{BF}(v) \in \{-1, 0, 1\}$. It is left-heavy if $\text{BF}(v) > 0$ and right-heavy if $\text{BF}(v) < 0$.
 - Depth of the root is `0`. Depth increases by `1` along each downward edge.
 - Search comparisons count comparisons between element keys.
 
@@ -345,7 +337,7 @@ $O(1)$ auxiliary space.
 
 ---
 
-## Part 3: Structural Degeneration, Balance Factors, and Diagnostics
+## Part 3: Structural Degeneration
 
 Because an unaugmented BST does not rebalance itself, its shape is determined
 by the order in which keys are inserted.
@@ -372,322 +364,15 @@ the total number of key comparisons.
 | Degenerate BST |  |  |
 | Balanced BST |  |  |
 
-### 3.2 Balance factors and violation signatures
-
-An **AVL tree** maintains the **balance invariant**:
-$$\text{BF}(v) = \text{height}(v.\text{left}) - \text{height}(v.\text{right}) \in \{-1, 0, 1\} \quad \text{for all nodes } v$$
-
-When a node insertion causes $|\text{BF}(z)| \ge 2$ at some ancestor $z$, an
-imbalance has occurred. The lowest ancestor where this violation occurs is
-categorized into one of four **violation signatures**:
-
-| Signature | Name | Condition at ancestor $z$ | Condition at heavier child | Required rebalancing action |
-|---|---|---|---|---|
-| **LL** | Left-Left | $\text{BF}(z) = +2$ | $\text{BF}(z.\text{left}) \ge 0$ | Single `rotate_right(tree, z)` |
-| **RR** | Right-Right | $\text{BF}(z) = -2$ | $\text{BF}(z.\text{right}) \le 0$ | Single `rotate_left(tree, z)` |
-| **LR** | Left-Right | $\text{BF}(z) = +2$ | $\text{BF}(z.\text{left}) < 0$ | Double: `rotate_left(tree, z.left)` then `rotate_right(tree, z)` |
-| **RL** | Right-Left | $\text{BF}(z) = -2$ | $\text{BF}(z.\text{right}) > 0$ | Double: `rotate_right(tree, z.right)` then `rotate_left(tree, z)` |
-
-**An AVL violation occurs at the lowest ancestor where the height difference between left and right subtrees reaches 2 or -2, and the required rotation is uniquely determined by the sign of the ancestor's balance factor and its heavier child's balance factor.**
-
-### 3.3 Diagnose the four cases
-
-For each insertion order, identify the unbalanced node, compute the balance
-factor of that node and its heavier child, classify the violation, and select
-the required rotation.
-
-| Insertion order | Unbalanced node and BF | Heavier child and BF | Signature | Repair |
-|---|---|---|---|---|
-| `[30, 20, 10]` | `30`, +2 | `20`, +1 | LL | `rotate_right(tree, 30)` |
-| `[10, 20, 30]` |  |  |  |  |
-| `[30, 10, 20]` |  |  |  |  |
-| `[10, 30, 20]` |  |  |  |  |
-
-The test suite in `lab_checks.py` demonstrates the difference empirically by
-searching 1,000 keys: 999 comparisons on a degenerate tree versus only 8 on a
-balanced tree. AVL trees strictly guarantee height $h < 1.44 \log_2(n + 2)$,
-ensuring $O(\log n)$ worst-case search.
-
----
-
-## Part 4: AVL Rotation Primitives
-
-Rotations are local pointer-rewiring transformations that alter the height of
-subtrees without altering the in-order traversal of keys.
-
-Before implementing the rotation functions, work through the illustrated cases:
-
-**Visual guide:** [AVL Rotation Images and Cases](AVL_ROTATION_GUIDE.md)
-
-The guide covers the **LL**, **RR**, **LR**, and **RL** cases. The missing final
-RL drawing uses the same left rotation shown in the RR case.
-
-**Rotations alter the pointer structure and heights of nodes to restore balance while strictly preserving the in-order traversal order of all keys.**
-
-### Single Right Rotation (`rotate_right(tree, y)`)
-In a right rotation around node $y$, $y$'s left child $x$ becomes the new root
-of the subtree:
-1. $x$'s right subtree becomes $y$'s left subtree.
-2. $y$ becomes $x$'s right child.
-3. Parent pointers are updated for $x$, $y$, and the transferred subtree.
-4. The heights of $y$ and $x$ are recalculated (in that order: $y$ first, then $x$).
-
-### Single Left Rotation (`rotate_left(tree, x)`)
-The symmetric mirror of right rotation: $x$'s right child $y$ becomes the new
-root of the subtree:
-1. $y$'s left subtree becomes $x$'s right subtree.
-2. $x$ becomes $y$'s left child.
-3. Parent pointers are updated for $y$, $x$, and the transferred subtree.
-4. The heights of $x$ and $y$ are recalculated (in that order: $x$ first, then $y$).
-
-### Double Rotations
-- **`rotate_left_right(tree, z)`**: Performs `rotate_left(tree, z.left)` followed
-  by `rotate_right(tree, z)`.
-- **`rotate_right_left(tree, z)`**: Performs `rotate_right(tree, z.right)` followed
-  by `rotate_left(tree, z)`.
-
-### Pseudocode
-
-```text
-ROTATE-LEFT(T, x)
-  y = x.right
-  x.right = y.left
-  if y.left != None
-    y.left.parent = x
-  y.parent = x.parent
-  if x.parent == None
-    T.root = y
-  else if x == x.parent.left
-    x.parent.left = y
-  else
-    x.parent.right = y
-  y.left = x
-  x.parent = y
-  UPDATE-HEIGHT(x)
-  UPDATE-HEIGHT(y)
-
-ROTATE-RIGHT(T, y)
-  x = y.left
-  y.left = x.right
-  if x.right != None
-    x.right.parent = y
-  x.parent = y.parent
-  if y.parent == None
-    T.root = x
-  else if y == y.parent.left
-    y.parent.left = x
-  else
-    y.parent.right = x
-  x.right = y
-  y.parent = x
-  UPDATE-HEIGHT(y)
-  UPDATE-HEIGHT(x)
-
-ROTATE-LEFT-RIGHT(T, z)
-  ROTATE-LEFT(T, z.left)
-  ROTATE-RIGHT(T, z)
-
-ROTATE-RIGHT-LEFT(T, z)
-  ROTATE-RIGHT(T, z.right)
-  ROTATE-LEFT(T, z)
-```
-
-### 4.1 Right-rotation trace
-
-Start with the LL tree `30 -> 20 -> 10`, where each arrow points to a left
-child. Apply `rotate_right(tree, 30)`.
-
-Complete the resulting pointer and height summary.
-
-| Node | Parent after | Left after | Right after | Height after |
-|---|---|---|---|---|
-| 20 | `None` (root) | 10 | 30 | 1 |
-| 10 |  |  |  |  |
-| 30 |  |  |  |  |
-
-The in-order traversal must remain `[10, 20, 30]`.
-
-### 4.2 Implementation
-
-Implement the following functions in `rotation_practice.py`. Preserve the BST
-ordering invariant, parent pointers, `tree.root`, and stored node heights.
-
-| Function | Required behavior |
-|---|---|
-| `balance_factor(node)` | Return left-subtree height minus right-subtree height; return `0` for `None`. |
-| `rotate_left(tree, x)` | Promote `x.right`, reconnect the transferred subtree, and update affected heights. |
-| `rotate_right(tree, y)` | Promote `y.left`, reconnect the transferred subtree, and update affected heights. |
-| `rotate_left_right(tree, z)` | Rotate left at `z.left`, then rotate right at `z`. |
-| `rotate_right_left(tree, z)` | Rotate right at `z.right`, then rotate left at `z`. |
-
-```bash
-python3 rotation_practice.py
-```
-
-A rotation changes only a fixed number of pointers and two height fields, so
-both single and double rotations take $\Theta(1)$ time and $\Theta(1)$ auxiliary
-space.
-
-### 4.3 Height update order
-
-Explain in one or two sentences why a rotation must update the demoted node's
-height before updating the promoted node's height.
-
----
-
-## Part 5: Iterative and Recursive AVL Insertion
-
-An AVL insertion begins like an ordinary BST insertion, but it must also repair
-the path from the new leaf back toward the root. At each ancestor:
-
-1. Recalculate the ancestor's height.
-2. Calculate its balance factor.
-3. If the node is unbalanced, identify the LL, RR, LR, or RL signature.
-4. Apply the matching rotation and reconnect the repaired subtree.
-
-Both implementations must preserve the BST ordering invariant, all `parent`
-pointers, stored heights, and the AVL balance invariant. Input keys are
-distinct; duplicate keys are not supported.
-
-| Approach | How it finds the insertion point | How it revisits ancestors | Extra memory |
-|---|---|---|---|
-| **Iterative** | Walks downward with a loop | Follows `parent` pointers upward | $O(1)$ |
-| **Recursive** | Calls itself on the left or right subtree | Returns through those function calls | $O(h)$ |
-
-Because an AVL tree has height $h = O(\log n)$, both approaches take
-$O(\log n)$ time per insertion.
-
-### Debugging the tree
-
-The provided `BinarySearchTree.print_tree()` method displays the entire tree,
-including each node's direction, stored height, balance factor, and parent key.
-Call it after an insertion or rotation to inspect the current structure.
-
-```python
-tree = BinarySearchTree()
-
-for key in [30, 10, 20]:
-  avl_insert_iterative(tree, key)
-  tree.print_tree()
-  print()
-```
-
-A balanced three-node tree is displayed as:
-
-```text
-20 [height=1, bf=0, parent=None]
-├── L: 10 [height=0, bf=0, parent=20]
-└── R: 30 [height=0, bf=0, parent=20]
-```
-
-The method prints the values currently stored in the nodes. Use the checker to
-confirm whether the displayed heights, pointers, and balance factors are
-correct.
-
-### 5.1 Iterative AVL insertion
-
-Implement `avl_insert_iterative(tree, key)` in `rotation_practice.py`.
-
-Use a loop to perform an ordinary BST insertion. Starting at the new node's
-parent, follow `parent` pointers toward the root, update heights, and repair the
-first AVL violation. Return the newly created `Node`.
-
-```text
-AVL-INSERT-ITERATIVE(T, key)
-  z = ordinary iterative BST insertion of key
-  current = z.parent
-
-  while current != None
-    UPDATE-HEIGHT(current)
-    bf = BALANCE-FACTOR(current)
-
-    if bf > 1
-      if key < current.left.key
-        ROTATE-RIGHT(T, current)       // LL
-      else
-        ROTATE-LEFT-RIGHT(T, current)  // LR
-      break
-
-    if bf < -1
-      if key > current.right.key
-        ROTATE-LEFT(T, current)        // RR
-      else
-        ROTATE-RIGHT-LEFT(T, current)  // RL
-      break
-
-    current = current.parent
-
-  return z
-```
-
-After the first restorative rotation, the repaired subtree has the same height
-it had before the insertion, so no higher ancestor can become newly unbalanced.
-
-### 5.2 Recursive AVL insertion
-
-Implement `avl_insert_recursive(tree, key)` in `rotation_practice.py`.
-
-Write a recursive helper that returns the root of the updated subtree. Insert
-on the way down, then update heights and rebalance while the recursive calls
-return. The public function must update `tree.root`, ensure the root's parent is
-`None`, and return the newly created `Node`.
-
-```text
-AVL-INSERT-RECURSIVE(T, key)
-  inserted = None
-  T.root = INSERT-SUBTREE(T, T.root, None, key)
-  T.root.parent = None
-  return inserted
-
-INSERT-SUBTREE(T, node, parent, key)
-  if node == None
-    inserted = Node(key, parent)
-    return inserted
-
-  if key < node.key
-    node.left = INSERT-SUBTREE(T, node.left, node, key)
-  else
-    node.right = INSERT-SUBTREE(T, node.right, node, key)
-
-  UPDATE-HEIGHT(node)
-
-  if node has an LL, RR, LR, or RL violation
-    apply the corresponding rotation
-    return the new root of this subtree
-
-  return node
-```
-
-### 5.3 Compare the two insertion methods
-
-Insert the keys `[30, 10, 20]` in that order. This produces a Left-Right (LR)
-imbalance. Compare what happens in the iterative and recursive versions.
-
-1. **Iterative insertion:** After adding `20`, which nodes are checked as the
-   algorithm follows parent pointers back toward the root?
-2. **Recursive insertion:** After adding `20`, in what order does the program
-   return from the recursive calls? List the nodes in that order.
-3. Which node is the first one found to be unbalanced in both versions?
-4. Why does the recursive version need extra memory? In your answer, consider
-   what happens to unfinished function calls while the recursion moves down the
-   tree.
-
-Run the checker after completing both implementations:
-
-```bash
-python3 rotation_practice.py
-```
-
 ---
 
 ## Final check
 
-Run all three practice files from within the `lab3/` directory:
+Run both practice files from within the `lab3/` directory:
 
 ```bash
 python3 heap_practice.py
 python3 bst_practice.py
-python3 rotation_practice.py
 ```
 
 - Any unfinished function reports `[TODO]`.
@@ -695,4 +380,4 @@ python3 rotation_practice.py
 - Any fully working function reports `[PASS]`.
 
 Each practice file exits with a nonzero exit code if any check is unfinished or
-failing. When all checks pass, all three commands return exit code `0`.
+failing. When all checks pass, both commands return exit code `0`.
