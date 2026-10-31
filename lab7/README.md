@@ -84,9 +84,9 @@ occurs. Record where $j$ stops and whether you add $s$ to the results.
 | Shift `s` | Text indices checked | Final `j` | Append `s`? |
 |---|---|---|---|
 | 1 | `1` | 0 | No |
-| 2 | TODO | TODO | TODO |
-| 4 | TODO | TODO | TODO |
-| 5 | TODO | TODO | TODO |
+| 2 | `2, 3` | 1 | No |
+| 4 | `4, 5` | 1 | No |
+| 5 | `5, 6, 7` | 3 | Yes |
 
 ### 1.2 Implementation
 
@@ -178,6 +178,14 @@ At shift `6`, the hash is `7`; all five characters match, so record `6`.
    text and pattern indices checked before stopping. Is this a match or a
    spurious hit?
 
+1. Moving from shift `6` to `7`, the digit `3` (`T[6]`) leaves the window and the  
+   digit `2` (`T[11]`) enters.
+   $t = (10 \cdot (7 - 3 \cdot 3) + 2) \bmod 13 = (10 \cdot (-2) + 2) \bmod 13 = -18 \bmod 13 = 8$.
+   Check: `14152` mod 13 = 8.
+2. At shift `12` the window is `"67399"`. Compare text index `12` (`'6'`) with
+  pattern index `0` (`'3'`).
+  They differ, so the check stops after one comparison. This is a spurious hit.
+
 ### 2.2 Implementation
 
 **TODO 2.2:** Complete `rabin_karp` in the provided `string_search.py` using
@@ -203,11 +211,14 @@ hash comparisons and character checks.
 
 | Case | Build hashes | Search | Total |
 |---|---|---|---|
-| Best | TODO | TODO | TODO |
-| Worst | TODO | TODO | TODO |
+| Best | $\Theta(m)$ | $\Theta(n-m+1)$ | $\Theta(n)$ |
+| Worst | $\Theta(m)$ | $\Theta((n-m+1)m)$ | $\Theta((n-m+1)m)$ |
 
 For each case, explain in one sentence how many windows need character checks
 and how many characters are checked in each one.
+
+- **Best case:** No window needs character checks, so each of the $n-m+1$ windows costs only one hash comparison and one constant-time roll.
+- **Worst case:** All $n-m+1$ windows have a hash hit and every character matches, so each window checks all $m$ characters.
 
 ### Connection: Searching for several patterns
 
@@ -301,11 +312,14 @@ The first row is worked: `P[2] == P[4]`, so `k` increases to `3`.
 | Index `j` | Starting `k` | Fallbacks | `pi[j]` |
 |---|---|---|---|
 | 4 | 2 | none | 3 |
-| 5 | 3 | TODO | TODO |
-| 6 | 0 | TODO | TODO |
+| 5 | 3 | 3 → 1 → 0 | 0 |
+| 6 | 0 | none | 1 |
 
 Now trace the matcher at `i = 8`, starting with `q = 6`. Which pattern index
 is compared with `T[8]`? What shift is recorded, and what is `q` afterward?
+
+At `i = 8` with `q = 6`, pattern index `6` (`P[6] = a`) is compared with `T[8] = a`.
+They match, so `q` becomes `7 = m` and shift `8 - 7 + 1 = 2` is recorded. Afterward `q = pi[6] = 1`.
 
 ### 3.2 Implementation
 
@@ -330,12 +344,18 @@ Give tight bounds in terms of $n$ and $m$.
 
 | Case | Build `pi` | Search | Total |
 |---|---|---|---|
-| Best | TODO | TODO | TODO |
-| Worst | TODO | TODO | TODO |
+| Best | $\Theta(m)$ | $\Theta(n)$ | $\Theta(n+m) = \Theta(n)$ |
+| Worst | $\Theta(m)$ | $\Theta(n)$ | $\Theta(n+m) = \Theta(n)$ |
 
 Explain the worst-case bound in a few lines. Across the whole scan, how often
 can `q` increase? How does that limit the number of fallbacks? Use the same
 reasoning for `k` when building `pi`.
+
+In the search, `q` increases by at most 1 for each text index `i`, so it increases at most $n$ times over the whole scan.
+Every fallback `q = pi[q - 1]` makes `q` strictly smaller, and `q` never drops below 0.
+So the total number of fallbacks is at most the total number of increases, which is at most $n$, and the search is $\Theta(n)$.
+The same argument works for `k` when building `pi`. It increases at most once per `j` (at most $m - 1$ times) and each fallback decreases it, so building `pi` is $\Theta(m)$.
+For `"aaab"` in twenty `a` characters, each mismatch causes a single fallback (`q` goes from 3 to 2) before the next match, so the work stays linear.
 
 ---
 
