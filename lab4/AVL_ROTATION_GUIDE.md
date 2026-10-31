@@ -1,4 +1,4 @@
----
+  ---
 layout: default
 title: AVL Rotation Images and Cases
 nav_exclude: true
