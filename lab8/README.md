@@ -24,8 +24,8 @@ This lab covers the graph representations and traversals from lecture:
 | `graph_traversals.py` | Complete `bfs`, `reconstruct_path`, and `dfs` |
 | `lab_checks.py` | Provided automated checks; do not edit |
 
-- [ ] Part 2: Trace BFS, implement it, and reconstruct a path.
-- [ ] Part 3: Trace and implement DFS, then compare traversal costs.
+- [X] Part 2: Trace BFS, implement it, and reconstruct a path.
+- [X] Part 3: Trace and implement DFS, then compare traversal costs.
 
 ---
 
@@ -123,11 +123,13 @@ newly assigned parents.
 | Vertex removed | Queue afterward | New parent assignments |
 |---|---|---|
 | 0 | `[1, 2]` | `parent[1] = 0`, `parent[2] = 0` |
-| 1 | TODO | TODO |
-| 2 | TODO | TODO |
-| 3 | TODO | TODO |
+| 1 | `[2, 3, 4]` | `parent[3] = 1`, `parent[4] = 1` |
+| 2 | `[3, 4]` | none |
+| 3 | `[4]` | none |
 
 Why does processing `2` leave `parent[4]` unchanged? Answer in one sentence.
+
+Vertex 4 was already marked visited when 1 discovered it, so BFS skips it while processing 2 and `parent[4]` stays 1.
 
 ### 2.2 Implementation
 
@@ -225,9 +227,9 @@ vertex `5`.
 | Vertex | Parent | Discovery time | Finishing time |
 |---|---|---|---|
 | 0 | `None` | 1 | 10 |
-| 3 | TODO | TODO | TODO |
-| 4 | TODO | TODO | TODO |
-| 5 | TODO | TODO | TODO |
+| 3 | 1 | 3 | 8 |
+| 4 | 3 | 4 | 7 |
+| 5 | `None` | 11 | 12 |
 
 ### 3.2 Implementation
 
@@ -248,12 +250,14 @@ a vertex's neighbors requires scanning its entire row.
 
 | Cost | Adjacency list | Adjacency matrix |
 |---|---|---|
-| Store the graph | TODO | TODO |
-| Run BFS | TODO | TODO |
-| Run DFS | TODO | TODO |
+| Store the graph | Θ(V + E) | Θ(V²) |
+| Run BFS | Θ(V + E) | Θ(V²) |
+| Run DFS | Θ(V + E) | Θ(V²) |
 
 In a few sentences, explain how many neighbor entries each traversal checks
 with each representation. Why does a sparse graph benefit from adjacency lists?
+
+With an adjacency list, each vertex's list is scanned exactly once, when it is dequeued in BFS or visited in DFS. The total number of neighbor entries checked is the sum of all degrees, which is 2E for an undirected graph, so both traversals take Θ(V + E). With a matrix, processing a vertex means scanning its whole row of V entries, and every vertex is processed once, so both traversals check V² entries no matter how many edges exist. A sparse graph has E much smaller than V², so adjacency lists save memory and let the traversals touch only real edges instead of a row full of zeros.
 
 ---
 
